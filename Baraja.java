@@ -13,15 +13,15 @@ public class Baraja {
         baraja = new ArrayList<>();
         figuras = new ArrayList<String>(Arrays.asList("oros", "copas", "espadas", "bastos"));
         imagenes = new ArrayList<ImageIcon>();
-        imagenes.add(new ImageIcon(getClass().getResource("imagenes/oros1.png")));
+        //imagenes.add(new ImageIcon(getClass().getResource("imagenes/oros1.png")));
 
-        for (int i = 1; i <= 13; i++) {
+        for (int i = 1; i < 14; i++) {
             for (int j = 0; j < 4; j++) {
                 int valor = i;
                 String figura = figuras.get(j);
 
-                //Carta nuevaCarta = new Carta(valor, figura, imagen);
-               // baraja.add(nuevaCarta);
+                Carta nuevaCarta = new Carta(valor, figura);
+                baraja.add(nuevaCarta);
             }
         }
 
@@ -41,6 +41,18 @@ public class Baraja {
 
     public void mezclarBaraja() {
         Collections.shuffle(baraja);
+    }
+
+    public Carta getCarta(int i) {
+        return baraja.get(i);
+    }
+
+    public void borrarCarta(int i) {
+        baraja.remove(i);
+    }
+
+    public int getTamano() {
+        return baraja.size();
     }
 
 }

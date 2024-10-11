@@ -6,10 +6,18 @@ public class Carta {
     private String[] figuras;
     private ImageIcon imagen;
 
-    public Carta(int valor, String figura, ImageIcon imagen) {
+
+    public Carta() {
+        valor = 1;
+        figura = "oros";
+        //this.imagen = imagen;
+    }
+
+    //ImageIcon imagen
+    public Carta(int valor, String figura) {
         this.valor = valor;
         this.figura = figura;
-        this.imagen = imagen;
+        //this.imagen = imagen;
     }
 
     /**
@@ -63,7 +71,32 @@ public class Carta {
     }
 
     public String toString(){
-        return this.valor + " de " + this.figura;
+        String cadena;
+        switch (valor)
+        {
+            case 0:
+                cadena = "Joker";
+            case 1:
+                cadena = "A";
+                break;
+            case 11:
+                cadena = "J";
+                break;
+            case 12:
+                cadena = "Q";
+                break;
+            case 13:
+                cadena = "K";
+                break;
+            default:
+                cadena = Integer.toString(valor);
+        }
+        return cadena + " de " + figura;
+    }
+
+    public void printInConsole()
+    {
+        System.out.println(toString());
     }
 
 }
