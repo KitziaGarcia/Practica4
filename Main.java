@@ -9,5 +9,6 @@ public class Main {
         cantidadDeJugadores = Utilidades.isInputValid(input, "Ingrese cantidad de jugadores: ", 2, 4);
 
         UNO juego = new UNO(cantidadDeJugadores);
+        juego.jugar();
     }
 }
