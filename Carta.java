@@ -14,10 +14,10 @@ public class Carta {
     }
 
     //ImageIcon imagen
-    public Carta(int valor, String figura) {
+    public Carta(int valor, String figura, ImageIcon imagen) {
         this.valor = valor;
         this.figura = figura;
-        //this.imagen = imagen;
+        this.imagen = imagen;
     }
 
     /**
@@ -28,6 +28,10 @@ public class Carta {
     public int getValor()
     {
         return valor;
+    }
+
+    public ImageIcon getImagen() {
+        return imagen;
     }
 
     /**
@@ -79,13 +83,13 @@ public class Carta {
             case 1:
                 cadena = "A";
                 break;
-            case 11:
+            case 10:
                 cadena = "J";
                 break;
-            case 12:
+            case 11:
                 cadena = "Q";
                 break;
-            case 13:
+            case 12:
                 cadena = "K";
                 break;
             default:
