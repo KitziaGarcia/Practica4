@@ -18,7 +18,7 @@ public class Baraja {
         ImageIcon imagen3 = new ImageIcon(getClass().getResource("imagen3.png"));
         ImageIcon imagen4 = new ImageIcon(getClass().getResource("imagen4.png"));
         ImageIcon imagen5 = new ImageIcon(getClass().getResource("imagen5.png"));
-        ImageIcon imagen6 = new ImageIcon(getClass().getResource("imagen5.png"));
+        ImageIcon imagen6 = new ImageIcon(getClass().getResource("imagen6.png"));
         ImageIcon imagen7 = new ImageIcon(getClass().getResource("imagen7.png"));
         ImageIcon imagen8 = new ImageIcon(getClass().getResource("imagen8.png"));
         ImageIcon imagen9 = new ImageIcon(getClass().getResource("imagen9.png"));

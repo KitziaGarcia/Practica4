@@ -1,11 +1,6 @@
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Scanner;
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class UNO {
     private Baraja baraja;
@@ -16,21 +11,26 @@ public class UNO {
     private int cantidadDeJugadores;
     private int direccion;
     private Carta cartaPuesta;
-    private SetJuego gui;
+    boolean juegoFinalizado;
+    boolean pasar;
+    //int index = 0;
+    boolean primerTurno;
+    boolean turnoFinalizado;
+    boolean cartaValida;
+    JLabel mensajeLabel;
     //private int winnerTurn;
 
-    public UNO(int cantidadDeJugadores) {
+    public UNO(int cantidadDeJugadores, JLabel mensajeLabel) {
         baraja = new Baraja();
         this.cantidadDeJugadores = cantidadDeJugadores;
-        turno = 0;
-        repartirCartas();
-        System.out.println(cartasJugadores.toString());
-        gui = new SetJuego(this);
+        this.turno = 0;
+        this.mensajeLabel = mensajeLabel;
+        this.direccion = 1;
     }
 
     public void repartirCartas() {
         int cartasPorJugador = 7;
-        //baraja.mezclarBaraja();
+        baraja.mezclarBaraja();
         cartasJugadores = new ArrayList<ArrayList<Carta>>();
 
         for (int i = 0; i < cantidadDeJugadores; i++) {
@@ -52,63 +52,40 @@ public class UNO {
         }
     }
 
-    public void jugar() {
-        boolean juegoFinalizado = false;
+    public void inicializarJuego() {
+        repartirCartas();
         cartaPuesta = new Carta();
+        cartaPuesta = cementerio.getFirst();
+        setCartaPuesta(cartaPuesta);
+        cementerio.removeFirst();
+
+        this.juegoFinalizado = false;
+        this.pasar = false;
+        this.primerTurno = true;
+        this.turnoFinalizado = false;
+        this.cartaValida = false;
+    }
+
+    public void jugar() {
+        /*boolean juegoFinalizado = false;
+        //cartaPuesta = new Carta();
         boolean pasar = false;
-        Scanner input = new Scanner(System.in);
-        int index = 0;
         boolean primerTurno = true;
         boolean turnoFinalizado;
         boolean cartaValida;
-        direccion = 1;
-
-        //masMovimientos = new ArrayList<Boolean>(Arrays.asList(new Boolean[cantidadDeJugadores]));
-        //Collections.fill(masMovimientos, Boolean.TRUE);
+        direccion = 1;*/
+        Scanner input = new Scanner(System.in);
+        int index = 0;
 
         while (!juegoFinalizado) {
             turnoFinalizado = false;
             cartaValida = false;
-            gui.crearBotones(cartasJugadores, turno);
 
-            //System.out.println("CEMENTERIO: " + cementerio.toString());
-
-            if (primerTurno) {
-                cartaPuesta = cementerio.getFirst();
-                cementerio.removeFirst();
-            }
-
-            System.out.println("CARTA PUESTA: " + cartaPuesta.toString());
-            System.out.println("CARTAS JUGADOR " + (turno + 1) + ": " + cartasJugadores.get(turno).toString());
-
-            //System.out.println("CEMENTERIO: " + cementerio.toString());
-
-            //Revisar si el jugador tiene mas movimientos para continuar su turno.
-
-            /*if (!jugadorTieneMovimientos(turno, cartaPuesta) && !cementerioEstaVacio()) {
-                System.out.println("No tienes movimientos, come una carta.");
-                comerDeCementerio(turno);
-                System.out.println("CARTAS JUGADOR: " + cartasJugadores.get(turno).toString());
-
-                if (!jugadorTieneMovimientos(turno, cartaPuesta)) {
-                    System.out.println("Aún no tienes movimientos después de comer, pasa automáticamente.");
-                    pressEnterToContinue();
-                    System.out.println();
-                    turnoFinalizado = true;
-                }
-
-            } else if (!jugadorTieneMovimientos(turno, cartaPuesta) && cementerioEstaVacio()) {
-                //Poner en el GUI que no tiene movimientos, pasar.
-                System.out.println("No tiene movimientos y no hay cartas para comer, pasa automaticamente.");
-                turnoFinalizado = true;
-
-            }*/
-
-            turnoFinalizado = jugadorTieneMovimientos(turno, cartaPuesta, turnoFinalizado);
+            //turnoFinalizado = jugadorTieneMovimientos(turno, cartaPuesta, turnoFinalizado);
 
             if (!turnoFinalizado) {
 
-                /*while (!cartaValida) {
+                while (!cartaValida) {
                     System.out.println("Seleccione carta: ");
                     index = input.nextInt();
                     cartaValida = esCartaValida(cartasJugadores.get(turno).get(index), cartaPuesta);
@@ -116,9 +93,9 @@ public class UNO {
 
                 cartaPuesta = cartasJugadores.get(turno).get(index);
                 cartasJugadores.get(turno).remove(index);
-                direccion = manejarEfectoCarta(cartaPuesta.getValor(), direccion);*/
+                //direccion = manejarEfectoCarta(cartaPuesta.getValor(), direccion);
 
-                cartaPuesta = jugarCarta(direccion, cartaValida, cartaPuesta);
+                //cartaPuesta = jugarCarta(cartaValida, cartaPuesta);
                 direccion = manejarEfectoCarta(cartaPuesta.getValor(), direccion, cartaValida, cartaPuesta, turnoFinalizado);
 
                 turnoFinalizado = true;
@@ -127,67 +104,64 @@ public class UNO {
                 System.out.println("CARTAS JUGADOR " + (turno + 1) + ": " + cartasJugadores.get(turno).toString());
                 System.out.println("NUEVA CARTA PUESTA: " + cartaPuesta.toString());
                 // AQUI ACABAN
-
-                pressEnterToContinue();
             }
 
             if (noTieneCartasElJugador(turno)) {
                 juegoFinalizado = true;
             }
 
-            actualizarTurno(juegoFinalizado, direccion);
+            //actualizarTurno(juegoFinalizado, direccion);
 
             primerTurno = false;
             System.out.println();
         }
     }
 
-    public boolean jugadorTieneMovimientos(int turno, Carta cartaPuesta, boolean turnoFinalizado) {
+    public boolean jugadorTieneMovimientos(int turno, Carta cartaPuesta) {
         int cantidadCartasDisponibles;
         cantidadCartasDisponibles = (int) cartasJugadores.get(turno).stream().filter(carta -> (carta.getValor() == cartaPuesta.getValor()) || carta.getFigura().equals(cartaPuesta.getFigura())).count();
-        System.out.println("CARTAS DISPONIBLES: " + cantidadCartasDisponibles);
 
-        if (!(cantidadCartasDisponibles > 0) && !cementerioEstaVacio()) {
-            System.out.println("No tienes movimientos, come una carta.");
+        return cantidadCartasDisponibles > 0;
+
+        /*if (!(cantidadCartasDisponibles > 0) && !cementerioEstaVacio()) {
+            mensajeLabel.setText("No tienes movimientos, debes tomar una carta.");
             comerDeCementerio(turno);
             cantidadCartasDisponibles = (int) cartasJugadores.get(turno).stream().filter(carta -> (carta.getValor() == cartaPuesta.getValor()) || carta.getFigura().equals(cartaPuesta.getFigura())).count();
             System.out.println("CARTAS JUGADOR: " + cartasJugadores.get(turno).toString());
 
             if (!(cantidadCartasDisponibles > 0)) {
-                System.out.println("Aún no tienes movimientos después de comer, pasa automáticamente.");
-                pressEnterToContinue();
+                mensajeLabel.setText("Aún no tienes movimientos después de comer, pasa automáticamente.");
                 System.out.println();
                 turnoFinalizado = true;
             }
         } else if (!(cantidadCartasDisponibles > 0) && cementerioEstaVacio()) {
 
             //Poner en el GUI que no tiene movimientos, pasar.
-            System.out.println("No tiene movimientos y no hay cartas para comer, pasa automaticamente.");
+            mensajeLabel.setText("No hay cartas para comer, pasas automáticamente.");
             turnoFinalizado = true;
-        }
+        }*/
 
-        return turnoFinalizado;
+        //return turnoFinalizado;
     }
 
     public boolean cementerioEstaVacio() {
         return cementerio.isEmpty();
     }
 
-    public void pressEnterToContinue() {
-        Scanner input = new Scanner(System.in);
-        input.nextLine();
-    }
+    public void actualizarTurno(int direccion) {
+        int cantidadDeJugadores = 3;
 
-    public void actualizarTurno(boolean juegoFinalizado, int direccion) {
         if (!juegoFinalizado) {
-            turno += direccion;
+            this.turno += this.direccion;
+            //System.out.println("dir: " + direccion);
 
             if (turno >= cantidadDeJugadores) {
-                turno = 0;
+                this.turno = 0;
             } else if (turno < 0) {
-                turno = cantidadDeJugadores - 1;
+                this.turno = cantidadDeJugadores - 1;
             }
         }
+
     }
 
     public int cambiarDireccion(int direccion) {
@@ -204,6 +178,8 @@ public class UNO {
 
     public boolean esCartaValida(Carta cartaSeleccionada, Carta cartaPuesta) {
         boolean cartaValida = true;
+        System.out.println("Seleccionada: " + cartaSeleccionada.getFigura() + " , " + cartaSeleccionada.getValor());
+        System.out.println("Puesta: " + cartaPuesta.getFigura() + " , " + cartaPuesta.getValor());
         if ((cartaSeleccionada.getFigura().equals(cartaPuesta.getFigura())) || (cartaSeleccionada.getValor() == cartaPuesta.getValor())) {
             cartaValida = true;
         } else {
@@ -217,37 +193,20 @@ public class UNO {
         return cartasJugadores.get(turno).isEmpty();
     }
 
-    public Carta jugarCarta(int direccion, boolean cartaValida, Carta cartaPuesta) {
-        Scanner input = new Scanner(System.in);
-        int index = 0;
+    public void jugarCarta(boolean cartaValida, Carta cartaSeleccionada) {
+        //Scanner input = new Scanner(System.in);
+        //int index = 0;
 
-        while (!cartaValida) {
+        /*while (!cartaValida) {
             System.out.println("Seleccione carta: ");
             index = input.nextInt();
             cartaValida = esCartaValida(cartasJugadores.get(turno).get(index), cartaPuesta);
-        }
-
-        cartaPuesta = cartasJugadores.get(turno).get(index);
-        cartasJugadores.get(turno).remove(index);
-        return cartaPuesta;
-    }
-
-    public void jugarCarta(JButton botonCarta, ArrayList<JButton> botonesCarta) {
-        int index = botonesCarta.indexOf(botonCarta); // Obtiene el índice del botón
-        Carta cartaSeleccionada = cartasJugadores.get(turno).get(index); // Obtiene la carta correspondiente
-
-        // Aquí puedes validar la carta
-        /*if (esCartaValida(cartaSeleccionada, cartaPuesta)) {
-            // Muestra la carta en el centro de la interfaz
-            mostrarCartaEnCentro(cartaSeleccionada);
-
-            // Elimina la carta de las cartas del jugador*/
-            cartasJugadores.get(turno).remove(index);
-       /* } else {
-            JOptionPane.showMessageDialog(this, "Carta no válida. Seleccione otra carta.");
         }*/
-    }
 
+        this.cartaPuesta = cartaSeleccionada;
+        System.out.println("Puesta en jugar UNO: " + cartaPuesta.getFigura() + " , " + cartaPuesta.getValor());
+        cartasJugadores.get(turno).remove(cartaSeleccionada);
+    }
 
     public int manejarEfectoCarta(int valorCarta, int direccion, boolean cartaValida, Carta cartaPuesta, boolean turnoFinalizado) {
         Scanner input = new Scanner(System.in);
@@ -257,9 +216,9 @@ public class UNO {
         switch (valorCarta) {
             case 1:
                 System.out.println("CARTA ANTES: " + cartaPuesta.toString());
-                turnoFinalizado = jugadorTieneMovimientos(turno, cartaPuesta, turnoFinalizado);
+                //turnoFinalizado = jugadorTieneMovimientos(turno, cartaPuesta, turnoFinalizado);
                 System.out.println("CARTAS JUGADOR " + (turno + 1) + ": " + cartasJugadores.get(turno).toString());
-                cartaPuesta = jugarCarta(direccion, cartaValida, cartaPuesta);
+                //cartaPuesta = jugarCarta(direccion, cartaValida, cartaPuesta);
                 direccion = manejarEfectoCarta(cartaPuesta.getValor(), direccion, cartaValida, cartaPuesta, turnoFinalizado);
                 System.out.println("CARTA DESPUES: " + cartaPuesta.toString());
             break;
@@ -295,5 +254,49 @@ public class UNO {
 
     public ArrayList<ArrayList<Carta>> getCartasJugadores() {
         return cartasJugadores;
+    }
+
+    public int getTurno() {
+        return this.turno;
+    }
+
+    public void setCartaPuesta(Carta carta) {
+        this.cartaPuesta = carta;
+    }
+
+    public Carta getCartaPuesta() {
+        return this.cartaPuesta;
+    }
+
+    public int getDireccion() {
+        return this.direccion;
+    }
+
+    public boolean getJuegoFinalizado() {
+        return this.juegoFinalizado;
+    }
+
+    public boolean getPasar() {
+        return this.pasar;
+    }
+
+    public boolean getEsPrimerTurno() {
+        return this.primerTurno;
+    }
+
+    public boolean getTurnoFinalizado() {
+        return this.turnoFinalizado;
+    }
+
+    public boolean getEsCartaValida() {
+        return this.cartaValida;
+    }
+
+    public void setTurnoFinalizado(boolean turnoFinalizado) {
+        this.turnoFinalizado = turnoFinalizado;
+    }
+
+    public void setCartaValida(boolean cartaValida) {
+        this.cartaValida = cartaValida;
     }
 }
