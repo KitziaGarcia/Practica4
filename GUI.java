@@ -40,9 +40,9 @@ public class GUI extends JFrame {
         panel1.add(botonComer);
         add(panel1, BorderLayout.EAST);
 
-        botonPasar = new JButton("Pasar");
+        /*botonPasar = new JButton("Pasar");
         botonPasar.setPreferredSize(new Dimension(100, 50));
-        panel1.add(botonPasar);
+        panel1.add(botonPasar);*/
 
         // Crear el panel para los botones.
         panelBotones = new JPanel();
@@ -115,9 +115,14 @@ public class GUI extends JFrame {
     }
 
     public void crearBotones(ArrayList<ArrayList<Carta>> cartas, int turno, Carta cartaPuesta, int direccion, boolean cartaValida) {
+
+        for (ActionListener al : botonComer.getActionListeners()) {
+            botonComer.removeActionListener(al);
+        }
+
         boolean masMovimientos = true;
         turno = juego.getTurno();
-        System.out.println("TURNO: " + turno);
+        System.out.println("TURNO INICIO DE CREAR BOTONES: " + turno);
 
         panelBotones.removeAll();
         botonesCarta.clear();
@@ -156,42 +161,47 @@ public class GUI extends JFrame {
                     panelBotones.repaint();
                 }
             });
-
             botonesCarta.add(boton);
             panelBotones.add(boton);
+            masMovimientos = juego.jugadorTieneMovimientos(finalTurno, cartaPuesta);
         }
 
-        masMovimientos = juego.jugadorTieneMovimientos(finalTurno, cartaPuesta);
+        System.out.println();
+        System.out.println("MAS MOVIMIENTOS TURNO " + finalTurno + " " + masMovimientos);
+        System.out.println();
 
-        if (!masMovimientos && !juego.cementerioEstaVacio()) {
-            JOptionPane.showMessageDialog(this, "No tienes movimientos, debes comer una carta.");
-            botonComer.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    comerDeCementerio(finalTurno, cartaPuesta, direccion, cartaValida);
+        if (!masMovimientos) {
+            if (!juego.cementerioEstaVacio()) {
+                JOptionPane.showMessageDialog(this, "No tienes movimientos, debes comer una carta.");
+                for (ActionListener al : botonComer.getActionListeners()) {
+                    botonComer.removeActionListener(al);
+                }
 
-                    boolean masMovimientosDespuesDeComer;
-                    masMovimientosDespuesDeComer = juego.jugadorTieneMovimientos(finalTurno, cartaPuesta);
+                botonComer.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        comerDeCementerio(finalTurno, cartaPuesta, direccion, cartaValida);
 
-                    if(!masMovimientosDespuesDeComer) {
-                        JOptionPane.showMessageDialog(null, "No tienes movimientos, pasa automáticamente.");
-                        botonPasar.addActionListener(new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                juego.actualizarTurno(finalTurno);
-                            }
-                        });
+                        // Verificar si el jugador puede hacer más movimientos después de comer
+                        //boolean masMovimientosDespuesDeComer = juego.jugadorTieneMovimientos(finalTurno, cartaPuesta);
+
+                        /*if (masMovimientosDespuesDeComer) {
+                            crearBotonCartaComida(finalTurno, cartaPuesta, direccion, cartaValida);
+                        } else {
+                            JOptionPane.showMessageDialog(null, "No tienes movimientos, pasas automáticamente.");
+                            juego.actualizarTurno(finalTurno);
+                            actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, cartaValida); // Crear botones para el siguiente jugador
+                        }*/
+
                     }
-                }
-            });
-        } else if (!masMovimientos && juego.cementerioEstaVacio()) {
-            JOptionPane.showMessageDialog(this,"No hay cartas para comer, pasas automáticamente.");
-            botonPasar.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    juego.actualizarTurno(finalTurno);
-                }
-            });
+                });
+
+            } else if (juego.cementerioEstaVacio()) {
+                // Si no hay cartas para comer, se pasa el turno automáticamente
+                JOptionPane.showMessageDialog(this, "No hay cartas para comer, pasas automáticamente.");
+                juego.actualizarTurno(finalTurno);
+                actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, cartaValida); // Crear botones para el siguiente jugador
+            }
         }
 
         // Actualizar el panel
@@ -218,6 +228,7 @@ public class GUI extends JFrame {
     public void comerDeCementerio(int turno, Carta cartaPuesta, int direccion, boolean cartaValida) {
         juego.comerDeCementerio(turno);
         System.out.println("DESPUES DE COMER: " + juego.getCartasJugadores().get(turno));
+        System.out.println("TURNO ANTES DE LLAMAR CREAR BOTON: " + turno);
         crearBotonCartaComida(turno, cartaPuesta, direccion, cartaValida);
     }
 
@@ -233,25 +244,46 @@ public class GUI extends JFrame {
     }
 
     public void crearBotonCartaComida(int turno, Carta cartaPuesta, int direccion, boolean cartaValida) {
+        // Obtener la carta comida
         Carta cartaComida = juego.getCartasJugadores().get(turno).getLast();
+
+        // Mostrar siempre la carta comida en el GUI
         ImageIcon imagenOriginal = cartaComida.getImagen();
         Image imagenEscalada = imagenOriginal.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
         JButton boton = new JButton(new ImageIcon(imagenEscalada));
         boton.setPreferredSize(new Dimension(100, 150));
+        panelBotones.add(boton); // Añadir botón al panel para que se muestre la carta comida
         panelBotones.revalidate();
         panelBotones.repaint();
-        botonesCarta.add(boton);
-        panelBotones.add(boton);
-        boton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                jugarCarta(boton, cartaComida, turno, cartaPuesta, direccion, cartaValida);
-                actualizarCartaPuestaEnGUI();
-                //panelBotones.remove(boton);
-                juego.actualizarTurno(turno);
-                //jugar();
-                //crearBotones(juego.getCartasJugadores(), turno, juego.getCartaPuesta(), direccion, cartaValida);
-            }
-        });
+
+        // Verificar si hay movimientos disponibles después de comer
+        boolean masMovimientosDespuesDeJugar = juego.jugadorTieneMovimientos(turno, cartaPuesta);
+
+        if (!masMovimientosDespuesDeJugar) {
+            // Si no hay movimientos, avisar al jugador y pasar el turno automáticamente
+            JOptionPane.showMessageDialog(null, "No tienes más movimientos, pasa automáticamente.");
+            juego.actualizarTurno(turno);
+            actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, cartaValida); // Actualizar botones para el siguiente jugador
+        } else {
+            // Si hay más movimientos, permitir que el jugador juegue la carta comida
+            botonesCarta.add(boton);
+            boton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    System.out.println("TURNO ANTES DE JUGAR: " + turno);
+                    jugarCarta(boton, cartaComida, turno, cartaPuesta, direccion, cartaValida);
+                    actualizarCartaPuestaEnGUI(); // Actualizar la carta puesta en el GUI
+                    System.out.println("TURNO DESPUÉS DE JUGAR: " + turno);
+                    actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, cartaValida);
+
+                }
+            });
+        }
+    }
+
+    private void actualizarPanelBotones(int finalTurno, Carta cartaPuesta, int direccion, boolean cartaValida) {
+        panelBotones.revalidate();
+        panelBotones.repaint();
+        crearBotones(juego.getCartasJugadores(), finalTurno, cartaPuesta, direccion, cartaValida);
     }
 }
