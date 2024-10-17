@@ -1,0 +1,23 @@
+    public void robarCartasAJugador(int jugadorDestino, int jugadorQueRoba, int cantidad) {
+        for (int i = 0; i < cantidad; i++) {
+            if (!cartasJugadores.get(jugadorDestino).isEmpty()) {
+                Carta cartaRobada = cartasJugadores.get(jugadorDestino).remove(0);
+                cartasJugadores.get(jugadorQueRoba).add(cartaRobada);
+            } else {
+                System.out.println("El jugador " + (jugadorDestino + 1) + " ya no tiene cartas para robar.");
+                break;
+            }
+        }
+    }
+
+//esto va dentro del switch case para que el jugador que juegue la carta le robe 4 al siguiente jugador
+            case 3:
+                int jugadorDestino = turno + direccion;
+                if (jugadorDestino >= cantidadDeJugadores) {
+                    jugadorDestino = 0;
+                } else if (jugadorDestino < 0) {
+                    jugadorDestino = cantidadDeJugadores - 1;
+                }
+                robarCartasAJugador(jugadorDestino, turno, 4);
+                System.out.println("Jugador " + (turno + 1) + " le roba 4 cartas al jugador " + (jugadorDestino + 1) + ".");
+                break;
