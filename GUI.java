@@ -8,19 +8,13 @@ public class GUI extends JFrame {
     private ArrayList<JButton> botonesCarta;
     private JButton botonComer;
     private JPanel panelBotones;
+    private JPanel panelEtiqueta;
     private UNO juego;
-    private JLabel mensajeLabel;
     private JButton botonPasar;
+    private JLabel jugadorEtiqueta;
 
     public GUI() {
-        mensajeLabel = new JLabel();
-        mensajeLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        mensajeLabel.setPreferredSize(new Dimension(400, 30));
-        mensajeLabel.setForeground(Color.WHITE);
-        mensajeLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        add(mensajeLabel, BorderLayout.WEST);
-
-        juego = new UNO(3, mensajeLabel);
+        juego = new UNO(3);
         inicializarGUI();
         jugar();
     }
@@ -129,7 +123,7 @@ public class GUI extends JFrame {
 
         int finalTurno = turno;
 
-        //mostrarTextoJugador(turno);
+        mostrarTextoJugador(turno);
 
         // Crear y agregar botones para las cartas del jugador actual
         System.out.println("Cartas jugador: " + juego.getCartasJugadores().get(turno).toString());
@@ -163,9 +157,13 @@ public class GUI extends JFrame {
             });
             botonesCarta.add(boton);
             panelBotones.add(boton);
-            masMovimientos = juego.jugadorTieneMovimientos(finalTurno, cartaPuesta);
+            /*masMovimientos = juego.jugadorTieneMovimientos(finalTurno, cartaPuesta);
+            System.out.println();
+            System.out.println("MAS MOVIMIENTOS TURNO " + finalTurno + " " + masMovimientos);
+            System.out.println();*/
         }
 
+        masMovimientos = juego.jugadorTieneMovimientos(finalTurno, cartaPuesta);
         System.out.println();
         System.out.println("MAS MOVIMIENTOS TURNO " + finalTurno + " " + masMovimientos);
         System.out.println();
@@ -233,14 +231,18 @@ public class GUI extends JFrame {
     }
 
     public void mostrarTextoJugador(int turno) {
-        JLabel jugadorEtiqueta = new JLabel();
+        panelEtiqueta = new JPanel(new FlowLayout(FlowLayout.LEFT)); // Alinear a la izquierda
         jugadorEtiqueta = new JLabel();
-        jugadorEtiqueta.setHorizontalAlignment(SwingConstants.CENTER);
-        jugadorEtiqueta.setPreferredSize(new Dimension(400, 30));
-        jugadorEtiqueta.setForeground(Color.WHITE);
-        jugadorEtiqueta.setFont(new Font("Arial", Font.PLAIN, 16));
-        add(jugadorEtiqueta, BorderLayout.SOUTH);
-        jugadorEtiqueta.setText("Jugador: " + turno);
+        jugadorEtiqueta.setHorizontalAlignment(SwingConstants.LEFT); // Alineación del texto a la izquierda
+        jugadorEtiqueta.setPreferredSize(new Dimension(200, 30)); // Cambia el tamaño según sea necesario
+        jugadorEtiqueta.setForeground(Color.BLACK); // Color del texto
+        jugadorEtiqueta.setFont(new Font("Arial", Font.PLAIN, 16)); // Fuente del texto
+        panelEtiqueta.add(jugadorEtiqueta);
+        add(panelEtiqueta, BorderLayout.NORTH);
+
+        jugadorEtiqueta.setText("Cartas jugador: " + (turno + 1));
+        panelEtiqueta.revalidate();
+        panelEtiqueta.repaint();
     }
 
     public void crearBotonCartaComida(int turno, Carta cartaPuesta, int direccion, boolean cartaValida) {
@@ -282,8 +284,8 @@ public class GUI extends JFrame {
     }
 
     private void actualizarPanelBotones(int finalTurno, Carta cartaPuesta, int direccion, boolean cartaValida) {
-        panelBotones.revalidate();
-        panelBotones.repaint();
+        //panelBotones.revalidate();
+        //panelBotones.repaint();
         crearBotones(juego.getCartasJugadores(), finalTurno, cartaPuesta, direccion, cartaValida);
     }
 }
