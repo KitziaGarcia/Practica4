@@ -1,0 +1,25 @@
+    public void robarCartas(int jugador, int cantidad) {
+        for (int i = 0; i < cantidad; i++) {
+            if (!cementerioEstaVacio()) {
+                cartasJugadores.get(jugador).add(cementerio.get(0));
+                cementerio.remove(0);
+            } else {
+                System.out.println("El cementerio está vacío, no se puede robar más cartas.");
+                break;
+            }
+        }
+    }
+
+
+
+// este va dentro del switch case para que el siguiente jugador agarre 2 cartas del mazo
+            case 2:
+                int siguienteJugador = turno + direccion;
+                if (siguienteJugador >= cantidadDeJugadores) {
+                    siguienteJugador = 0;
+                } else if (siguienteJugador < 0) {
+                    siguienteJugador = cantidadDeJugadores - 1;
+                }
+                robarCartas(siguienteJugador, 2);
+                System.out.println("Jugador " + (siguienteJugador + 1) + " roba 2 cartas.");
+                break;
