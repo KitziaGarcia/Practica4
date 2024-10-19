@@ -7,11 +7,26 @@ import java.awt.event.ActionListener;
 public class GUI extends JFrame {
     private ArrayList<JButton> botonesCarta;
     private JButton botonComer;
+    private JButton botonComer2;
+    private JPanel panel;
     private JPanel panelBotones;
     private JPanel panelEtiqueta;
     private UNO juego;
-    private JButton botonPasar;
+    private JButton botonRobar;
     private JLabel jugadorEtiqueta;
+    private JPanel panel1;
+    private JButton botonSaltarTurno;
+    private JButton botonCambiarDireccion;
+    private boolean accionEspecial;
+    private boolean seComioCarta;
+    boolean primerTurno;
+    private ImageIcon imagenCartaPuesta;
+    private Image imagenEscaladaCartaPuesta;
+    private JLabel cartaPuesta;
+    private ImageIcon imagenMazo;
+    private Image imagenEscaladaMazo;
+    private JLabel mazo;
+
 
     public GUI() {
         juego = new UNO(3);
@@ -26,19 +41,7 @@ public class GUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        botonComer = new JButton("Comer");
-        botonComer.setPreferredSize(new Dimension(100, 50));
-        JPanel panel1 = new JPanel();
-        panel1.setLayout(new FlowLayout(FlowLayout.RIGHT));
-        panel1.setBackground(new Color(3, 60, 0));
-        panel1.add(botonComer);
-        add(panel1, BorderLayout.EAST);
-
-        /*botonPasar = new JButton("Pasar");
-        botonPasar.setPreferredSize(new Dimension(100, 50));
-        panel1.add(botonPasar);*/
-
-        // Crear el panel para los botones.
+        // Crear el panel para las cartas.
         panelBotones = new JPanel();
         panelBotones.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
         panelBotones.setBackground(new Color(3, 60, 0));
@@ -55,36 +58,30 @@ public class GUI extends JFrame {
         // Agregar el panel de botones en la parte inferior de la ventana.
         add(panelBotones, BorderLayout.SOUTH);
 
+        mostrarTextoJugador();
         juego.inicializarJuego();
+        crearLayoutPrincipal();
 
         setVisible(true);
     }
 
     public void actualizarCartaPuestaEnGUI() {
-        // Crear el panel principal para las cartas.
-        JPanel panel = new JPanel();
-        panel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 40));
-        panel.setBackground(new Color(3, 60, 0));
-        add(panel, BorderLayout.CENTER);
-
-        // Imagen de la carta puesta en el juego.
-        ImageIcon imagenCartaPuesta = juego.getCartaPuesta().getImagen();
-        Image imagenEscaladaCartaPuesta = imagenCartaPuesta.getImage().getScaledInstance(200, 300, Image.SCALE_SMOOTH);
-        JLabel cartaPuesta = new JLabel(new ImageIcon(imagenEscaladaCartaPuesta));
+        // Imagen de la carta puesta en el juego.esconder
+        imagenCartaPuesta = juego.getCartaPuesta().getImagen();
+        imagenEscaladaCartaPuesta = imagenCartaPuesta.getImage().getScaledInstance(200, 300, Image.SCALE_SMOOTH);
+        cartaPuesta.setIcon(new ImageIcon(imagenEscaladaCartaPuesta));
         cartaPuesta.setPreferredSize(new Dimension(200, 300));
-
-        panel.removeAll();
 
         if (!juego.cementerioEstaVacio()) {
             // Imagen del mazo.
-            ImageIcon imagenMazo = new ImageIcon(getClass().getResource("imagen0.png"));
-            Image imagenEscaladaMazo = imagenMazo.getImage().getScaledInstance(200, 300, Image.SCALE_SMOOTH);
-            JLabel mazo = new JLabel(new ImageIcon(imagenEscaladaMazo));
+            imagenMazo = new ImageIcon(getClass().getResource("imagen0.png"));
+            imagenEscaladaMazo = imagenMazo.getImage().getScaledInstance(200, 300, Image.SCALE_SMOOTH);
+            mazo.setIcon(new ImageIcon(imagenEscaladaMazo));
             mazo.setPreferredSize(new Dimension(200, 300));
             panel.add(mazo);
         }
 
-        // Limpiar el panel y agregar las cartas una al lado de la otra.
+        System.out.println("CARTA PUESTA EN METODO ACTUALIZAR: " + juego.getCartaPuesta());
         panel.add(cartaPuesta);
 
         // Actualizar el panel.
@@ -100,6 +97,7 @@ public class GUI extends JFrame {
         int direccion = 1;
         int turno = 0;
         Carta cartaPuesta = juego.getCartaPuesta();
+        primerTurno = juego.getPrimerTurno();
 
         // Mostrar la carta puesta en el GUI
         actualizarCartaPuestaEnGUI();
@@ -109,46 +107,56 @@ public class GUI extends JFrame {
     }
 
     public void crearBotones(ArrayList<ArrayList<Carta>> cartas, int turno, Carta cartaPuesta, int direccion, boolean cartaValida) {
+        accionEspecial = juego.getAccionEspecial();
 
-        for (ActionListener al : botonComer.getActionListeners()) {
-            botonComer.removeActionListener(al);
+        if (juego.noTieneCartas()) {
+            displayCartasVolteadas();
+            avisoJuegoTerminado();
         }
 
         boolean masMovimientos = true;
         turno = juego.getTurno();
-        System.out.println("TURNO INICIO DE CREAR BOTONES: " + turno);
+        direccion = juego.getDireccion();
+        System.out.println("TURNO: " + turno);
 
         panelBotones.removeAll();
         botonesCarta.clear();
 
         int finalTurno = turno;
+        int finalDireccion = direccion;
 
-        mostrarTextoJugador(turno);
+        actualizarTextoJugador();
 
         // Crear y agregar botones para las cartas del jugador actual
-        System.out.println("Cartas jugador: " + juego.getCartasJugadores().get(turno).toString());
+        System.out.println("Cartas jugador " + (0) + ": " + juego.getCartasJugadores().get(0).toString());
+        System.out.println("Cartas jugador " + (1) + ": " + juego.getCartasJugadores().get(1).toString());
+        System.out.println("Cartas jugador " + (2) + ": " + juego.getCartasJugadores().get(2).toString());
+
         for (Carta carta : cartas.get(finalTurno)) {
             ImageIcon imagenOriginal = carta.getImagen();
             Image imagenEscalada = imagenOriginal.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
             JButton boton = new JButton(new ImageIcon(imagenEscalada));
             boton.setPreferredSize(new Dimension(100, 150));
-
             boton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    jugarCarta(boton, carta, finalTurno, cartaPuesta, direccion, cartaValida);
+                    /*if (carta.getValor() == 11 || carta.getValor() == 1) {
+                        juego.setAccionEspecial(true);
+                        System.out.println("BLOQUEAR MOVIMIENTOS: " + juego.getAccionEspecial());
+                    }*/
 
-                    // Actualizar la carta puesta en el GUI
+                    jugarCarta(boton, carta, finalTurno, cartaPuesta, finalDireccion, cartaValida);
+                    System.out.println("CARTA PUESTA DEPUES DE JUGARLA EN GUI: " + juego.getCartaPuesta());
                     actualizarCartaPuestaEnGUI();
 
                     // Verificar si el juego ha terminado
-                    if (juego.noTieneCartasElJugador(finalTurno)) {
-                        System.out.println("El juego ha terminado.");
-                        return;
+                    if (juego.noTieneCartasUnJugador(finalTurno)) {
+                        displayCartasVolteadas();
+                        avisoJuegoTerminado();
                     }
 
                     // Recrear los botones para el siguiente jugador
-                    crearBotones(juego.getCartasJugadores(), finalTurno, juego.getCartaPuesta(), direccion, cartaValida);
+                    crearBotones(juego.getCartasJugadores(), finalTurno, juego.getCartaPuesta(), finalDireccion, cartaValida);
 
                     // Actualizar el panel
                     panelBotones.revalidate();
@@ -168,43 +176,26 @@ public class GUI extends JFrame {
         System.out.println("MAS MOVIMIENTOS TURNO " + finalTurno + " " + masMovimientos);
         System.out.println();
 
-        if (!masMovimientos) {
-            if (!juego.cementerioEstaVacio()) {
-                JOptionPane.showMessageDialog(this, "No tienes movimientos, debes comer una carta.");
-                for (ActionListener al : botonComer.getActionListeners()) {
-                    botonComer.removeActionListener(al);
+        System.out.println("BLOQUEAR MOVIMIENTO ANTES DEL IF: " + juego.getAccionEspecial());
+        if (!juego.getAccionEspecial()) {
+            if (!masMovimientos) {
+                if (!juego.cementerioEstaVacio()) {
+                    JOptionPane.showMessageDialog(this, "No tienes movimientos, debes comer una carta.");
+                    botonComer.setVisible(true);
+                } else if (juego.cementerioEstaVacio()) {
+                    // Si no hay cartas para comer, se pasa el turno automáticamente
+                    JOptionPane.showMessageDialog(this, "No hay cartas para comer, pasas automáticamente.");
+                    juego.actualizarTurno(finalTurno);
+                    actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, cartaValida); // Crear botones para el siguiente jugador
                 }
-
-                botonComer.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        comerDeCementerio(finalTurno, cartaPuesta, direccion, cartaValida);
-
-                        // Verificar si el jugador puede hacer más movimientos después de comer
-                        //boolean masMovimientosDespuesDeComer = juego.jugadorTieneMovimientos(finalTurno, cartaPuesta);
-
-                        /*if (masMovimientosDespuesDeComer) {
-                            crearBotonCartaComida(finalTurno, cartaPuesta, direccion, cartaValida);
-                        } else {
-                            JOptionPane.showMessageDialog(null, "No tienes movimientos, pasas automáticamente.");
-                            juego.actualizarTurno(finalTurno);
-                            actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, cartaValida); // Crear botones para el siguiente jugador
-                        }*/
-
-                    }
-                });
-
-            } else if (juego.cementerioEstaVacio()) {
-                // Si no hay cartas para comer, se pasa el turno automáticamente
-                JOptionPane.showMessageDialog(this, "No hay cartas para comer, pasas automáticamente.");
-                juego.actualizarTurno(finalTurno);
-                actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, cartaValida); // Crear botones para el siguiente jugador
             }
         }
 
         // Actualizar el panel
+        //actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, cartaValida);
         panelBotones.revalidate();
         panelBotones.repaint();
+        juego.setPrimerTurno(false);
     }
 
     private void jugarCarta(JButton botonCarta, Carta cartaSeleccionada, int turno, Carta cartaPuesta, int direccion, boolean cartaValida) {
@@ -212,12 +203,21 @@ public class GUI extends JFrame {
         cartaSeleccionada = juego.getCartasJugadores().get(turno).get(index);
 
         if (juego.esCartaValida(cartaSeleccionada, cartaPuesta)) {
-            juego.jugarCarta(true, cartaSeleccionada);
-            juego.actualizarTurno(turno);
+            if ((cartaSeleccionada.getValor() == 11 || cartaSeleccionada.getValor() == 1 || cartaSeleccionada.getValor() == 3) && !juego.getPrimerTurno()) {
+                juego.setAccionEspecial(true);
+                manejarEfectoCarta(cartaSeleccionada.getValor(), direccion, cartaPuesta, turno, true);
+                juego.jugarCarta(true, cartaSeleccionada);
+                System.out.println("CARTA PUESTA EN JUGAR CARTA: " + juego.getCartaPuesta());
+            } else {
+                manejarEfectoCarta(cartaSeleccionada.getValor(), direccion, cartaPuesta, turno, true);
+                juego.jugarCarta(true, cartaSeleccionada);
+                juego.actualizarTurno(turno);
+            }
         } else {
             mensajeCartaInvalida();
         }
     }
+
 
     public void mensajeCartaInvalida() {
         JOptionPane.showMessageDialog(this, "Carta no válida. Seleccione otra.");
@@ -230,7 +230,7 @@ public class GUI extends JFrame {
         crearBotonCartaComida(turno, cartaPuesta, direccion, cartaValida);
     }
 
-    public void mostrarTextoJugador(int turno) {
+    public void mostrarTextoJugador() {
         panelEtiqueta = new JPanel(new FlowLayout(FlowLayout.LEFT)); // Alinear a la izquierda
         jugadorEtiqueta = new JLabel();
         jugadorEtiqueta.setHorizontalAlignment(SwingConstants.LEFT); // Alineación del texto a la izquierda
@@ -240,9 +240,15 @@ public class GUI extends JFrame {
         panelEtiqueta.add(jugadorEtiqueta);
         add(panelEtiqueta, BorderLayout.NORTH);
 
-        jugadorEtiqueta.setText("Cartas jugador: " + (turno + 1));
+        System.out.println("TURNO EN MENSAJE: " + (juego.getTurno() + 1));
+        jugadorEtiqueta.setText("Cartas jugador: " + (juego.getTurno() + 1));
+
         panelEtiqueta.revalidate();
         panelEtiqueta.repaint();
+    }
+
+    public void actualizarTextoJugador() {
+        jugadorEtiqueta.setText("Cartas jugador: " + (juego.getTurno() + 1));
     }
 
     public void crearBotonCartaComida(int turno, Carta cartaPuesta, int direccion, boolean cartaValida) {
@@ -284,8 +290,218 @@ public class GUI extends JFrame {
     }
 
     private void actualizarPanelBotones(int finalTurno, Carta cartaPuesta, int direccion, boolean cartaValida) {
-        //panelBotones.revalidate();
-        //panelBotones.repaint();
         crearBotones(juego.getCartasJugadores(), finalTurno, cartaPuesta, direccion, cartaValida);
+    }
+
+    public void manejarEfectoCarta(int valorCarta, int direccion, Carta cartaPuesta, int turno, boolean cartaValida) {
+        System.out.println("BLOQUEAR MOVIMIENTO: " + juego.getAccionEspecial());
+        switch (valorCarta) {
+            case 1:
+                botonComer2.setVisible(true);
+                actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, true);
+                JOptionPane.showMessageDialog(null, "Tienes que comer una carta.");
+
+                break;
+            case 2:
+                JOptionPane.showMessageDialog(null, "El siguiente jugador come dos cartas.");
+                juego.hacerComerAJugador();
+                break;
+            case 3:
+                botonRobar.setVisible(true);
+                JOptionPane.showMessageDialog(null, "Roba cuatro cartas al siguiente jugador.");
+                actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, true);
+
+                break;
+            case 11:
+                hacerBotonesVisibles();
+                System.out.println("CARTA PUESTA EN MANEJAR EFECTO: " + juego.getCartaPuesta());
+                actualizarCartaPuestaEnGUI();
+                //System.out.println("TURNO: " + turno);
+                //displayCartas(juego.getCartasJugadores(), turno);
+                //actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, true);
+
+                break;
+            case 12:
+                //Que pida el numero del jugador a quitar cartas, las muestre volteadas y pueda escoger cual quiere.
+
+                break;
+        }
+    }
+
+    private void hacerBotonesVisibles() {
+        botonSaltarTurno.setVisible(true);
+        botonCambiarDireccion.setVisible(true);
+        panel1.revalidate();
+        panel1.repaint();
+    }
+
+    public void crearLayoutPrincipal() {
+        botonComer = new JButton("Comer");
+        botonComer.setPreferredSize(new Dimension(100, 50));
+        panel1 = new JPanel();
+        panel1.setLayout(new BoxLayout(panel1, BoxLayout.Y_AXIS));
+        panel1.setBackground(new Color(3, 60, 0));
+        panel1.add(botonComer);
+        add(panel1, BorderLayout.EAST);
+        botonComer.setVisible(false);
+        //botonComer.revalidate();
+        //botonComer.repaint();
+
+        botonComer.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                botonComer.setVisible(false);
+                comerDeCementerio(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+            }
+        });
+
+
+        botonComer2 = new JButton("Comer");
+        botonComer2.setPreferredSize(new Dimension(100, 50));
+        panel1.add(botonComer2);
+        add(panel1, BorderLayout.EAST);
+        botonComer2.setVisible(false);
+
+        botonComer2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                botonComer2.setVisible(false);
+                comerDeCementerio(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                juego.setAccionEspecial(false);
+                actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+
+                Timer timer = new Timer(3000, i -> {
+                    juego.actualizarTurno(juego.getTurno());
+                    actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                });
+                timer.setRepeats(false); // Asegurarse de que se ejecute solo una vez
+                timer.start();
+            }
+        });
+
+        System.out.println("BLOQUEAR MOVIMIENTO: " + juego.getAccionEspecial());
+        //botonComer2.revalidate();
+        //botonComer2.repaint();
+
+        botonRobar = new JButton("Robar");
+        panel1.add(botonRobar);
+        add(panel1, BorderLayout.EAST);
+        botonRobar.setVisible(false);
+
+        botonRobar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                botonRobar.setVisible(false);
+                juego.robarCartas(juego.getTurno(), 4);
+                juego.setAccionEspecial(false);
+                actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                Timer timer = new Timer(3000, i -> {
+                    panel1.remove(botonRobar);
+                    panel1.revalidate();
+                    panel1.repaint();
+                    juego.actualizarTurno(juego.getTurno());
+                    actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                });
+                timer.setRepeats(false); // Asegurarse de que se ejecute solo una vez
+                timer.start();
+            }
+        });
+
+        //botonRobar.revalidate();
+        //botonRobar.repaint();
+
+
+        botonSaltarTurno = new JButton("Saltar turno.");
+        botonCambiarDireccion = new JButton("Cambiar de direccion");
+        panel1.add(botonSaltarTurno);
+        panel1.add(botonCambiarDireccion);
+        add(panel1, BorderLayout.EAST);
+        botonSaltarTurno.setVisible(false);
+        botonCambiarDireccion.setVisible(false);
+
+        botonSaltarTurno.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                botonSaltarTurno.setVisible(false);
+                juego.saltarTurnoJugador(3, juego.getDireccion(), juego.getTurno());
+                juego.actualizarTurno(juego.getTurno());
+                System.out.println("NUEVO TURNO SALTADO: " + juego.getTurno());
+                limpiarPanelBotones11();
+                juego.setAccionEspecial(false);
+                actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+            }
+        });
+
+        botonCambiarDireccion.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                botonCambiarDireccion.setVisible(false);
+                // Cambiar de dirección y luego actualizar el turno
+                juego.cambiarDireccion(juego.getDireccion());
+                juego.actualizarTurno(juego.getTurno());
+                limpiarPanelBotones11();
+                juego.setAccionEspecial(false);
+                actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+            }
+        });
+
+        panel1.revalidate();
+        panel1.repaint();
+
+        // Crear el panel principal para las cartas.
+        panel = new JPanel();
+        panel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 40));
+        panel.setBackground(new Color(3, 60, 0));
+        add(panel, BorderLayout.CENTER);
+
+        // Imagen de la carta puesta en el juego.
+        imagenCartaPuesta = juego.getCartaPuesta().getImagen();
+        imagenEscaladaCartaPuesta = imagenCartaPuesta.getImage().getScaledInstance(200, 300, Image.SCALE_SMOOTH);
+        cartaPuesta = new JLabel(new ImageIcon(imagenEscaladaCartaPuesta));
+        cartaPuesta.setPreferredSize(new Dimension(200, 300));
+
+        imagenMazo = new ImageIcon(getClass().getResource("imagen0.png"));
+        imagenEscaladaMazo = imagenMazo.getImage().getScaledInstance(200, 300, Image.SCALE_SMOOTH);
+        mazo = new JLabel(new ImageIcon(imagenEscaladaMazo));
+        mazo.setPreferredSize(new Dimension(200, 300));
+        panel.add(mazo);
+
+        panel.removeAll();
+
+        panel.add(cartaPuesta);
+
+        // Actualizar el panel.
+        panel.revalidate();
+        panel.repaint();
+    }
+
+    // Limpia el panel de los botones después de la acción
+    private void limpiarPanelBotones11() {
+        botonSaltarTurno.setVisible(false);
+        botonCambiarDireccion.setVisible(false);
+        panel1.revalidate();
+        panel1.repaint();
+    }
+
+    private void avisoJuegoTerminado() {
+        JOptionPane.showMessageDialog(null, "El juego ha terminado. Ganador: Jugador " + (juego.getIndexGanador() + 1));
+    }
+
+    private void displayCartasVolteadas()  {
+        panelBotones.removeAll();
+        botonesCarta.clear();
+
+        for (int i = 0; i < 7; i++) {
+            ImageIcon imagenOriginal = new ImageIcon(getClass().getResource("imagen0.png"));
+            Image imagenEscalada = imagenOriginal.getImage().getScaledInstance(150, 200, Image.SCALE_SMOOTH);
+            JButton boton = new JButton(new ImageIcon(imagenEscalada));
+            boton.setPreferredSize(new Dimension(150, 200));
+
+            botonesCarta.add(boton);
+            panelBotones.add(boton);
+        }
+
+        panelBotones.revalidate();
+        panelBotones.repaint();
     }
 }
