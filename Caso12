@@ -1,0 +1,21 @@
+                //Que pida el numero del jugador a quitar cartas, las muestre volteadas y pueda escoger cual quiere.
+                System.out.println("Elige el jugador al que quieres quitarle una carta (1 - " + cantidadDeJugadores + "): ");
+                int jugadorSeleccionado = input.nextInt() - 1;
+
+                System.out.println("Cartas del jugador " + (jugadorSeleccionado + 1) + " (volteadas): ");
+                for (int i = 0; i < cartasJugadores.get(jugadorSeleccionado).size(); i++) {
+                    System.out.println("Carta " + (i + 1) + ": [Carta volteada]");
+                }
+                System.out.println("Elige una carta para robar (1 - " + cartasJugadores.get(jugadorSeleccionado).size() + "): ");
+                int cartaSeleccionada = input.nextInt() - 1;
+                Carta cartaRobada = cartasJugadores.get(jugadorSeleccionado).remove(cartaSeleccionada);
+                cartasJugadores.get(turno).add(cartaRobada);
+
+                System.out.println("Has robado la carta: " + cartaRobada);
+                System.out.println("Selecciona un nuevo palo (1 - Oros, 2 - Copas, 3 - Espadas, 4 - Bastos): ");
+                int nuevoPalo = input.nextInt();
+                String[] palos = {"Oros", "Copas", "Espadas", "Bastos"};
+                cartaRobada.setFigura(palos[nuevoPalo - 1]);
+
+                System.out.println("El nuevo palo es: " + palos[nuevoPalo - 1]);
+                break;
