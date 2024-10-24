@@ -8,6 +8,10 @@ public class GUI extends JFrame {
     private ArrayList<JButton> botonesCarta;
     private JButton botonComer;
     private JButton botonComer2;
+    private JButton botonComerJugador1;
+    private JButton botonComerJugador2;
+    private JButton botonComerJugador3;
+    private JButton botonComerJugador4;
     private JPanel panel;
     private JPanel panelBotones;
     private JPanel panelEtiqueta;
@@ -203,7 +207,7 @@ public class GUI extends JFrame {
         cartaSeleccionada = juego.getCartasJugadores().get(turno).get(index);
 
         if (juego.esCartaValida(cartaSeleccionada, cartaPuesta)) {
-            if ((cartaSeleccionada.getValor() == 11 || cartaSeleccionada.getValor() == 1 || cartaSeleccionada.getValor() == 3) && !juego.getPrimerTurno()) {
+            if ((cartaSeleccionada.getValor() == 11 || cartaSeleccionada.getValor() == 1 || cartaSeleccionada.getValor() == 3 ||  cartaSeleccionada.getValor() == 12) && !juego.getPrimerTurno()) {
                 juego.setAccionEspecial(true);
                 manejarEfectoCarta(cartaSeleccionada.getValor(), direccion, cartaPuesta, turno, true);
                 juego.jugarCarta(true, cartaSeleccionada);
@@ -307,7 +311,9 @@ public class GUI extends JFrame {
                 juego.hacerComerAJugador();
                 break;
             case 3:
+                System.out.println("ANTES DE ACTIVAR: " + botonRobar.isVisible());
                 botonRobar.setVisible(true);
+                System.out.println("DESPUES DE ACTIVAR: " + botonRobar.isVisible());
                 JOptionPane.showMessageDialog(null, "Roba cuatro cartas al siguiente jugador.");
                 actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, true);
 
@@ -323,8 +329,54 @@ public class GUI extends JFrame {
                 break;
             case 12:
                 //Que pida el numero del jugador a quitar cartas, las muestre volteadas y pueda escoger cual quiere.
+                //Que pida el numero del jugador a quitar cartas, las muestre volteadas y pueda escoger cual quiere.
+                //System.out.println("Elige el jugador al que quieres quitarle una carta (1 - " + cantidadDeJugadores + "): ");
 
-                break;
+                switch (juego.getTurno()) {
+                    case 0:
+                        if (juego.getCantidadDeJugadores() == 2) {
+                            botonComerJugador2.setVisible(true);
+                        } else if (juego.getCantidadDeJugadores() == 3) {
+                            botonComerJugador2.setVisible(true);
+                            botonComerJugador3.setVisible(true);
+                        } else {
+                            botonComerJugador2.setVisible(true);
+                            botonComerJugador3.setVisible(true);
+                            botonComerJugador4.setVisible(true);
+                        }
+                        break;
+
+                    case 1:
+                        if (juego.getCantidadDeJugadores() == 2) {
+                            botonComerJugador1.setVisible(true);
+                        } else if (juego.getCantidadDeJugadores() == 3) {
+                            botonComerJugador1.setVisible(true);
+                            botonComerJugador3.setVisible(true);
+                        } else {
+                            botonComerJugador1.setVisible(true);
+                            botonComerJugador3.setVisible(true);
+                            botonComerJugador4.setVisible(true);
+                        }
+                        break;
+
+                    case 2:
+                        if (juego.getCantidadDeJugadores() == 3) {
+                            botonComerJugador1.setVisible(true);
+                            botonComerJugador2.setVisible(true);
+                        } else {
+                            botonComerJugador1.setVisible(true);
+                            botonComerJugador2.setVisible(true);
+                            botonComerJugador4.setVisible(true);
+                        }
+                        break;
+
+                    case 3:
+                        botonComerJugador1.setVisible(true);
+                        botonComerJugador2.setVisible(true);
+                        botonComerJugador3.setVisible(true);
+                        break;
+                }
+                actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, true);
         }
     }
 
@@ -342,7 +394,6 @@ public class GUI extends JFrame {
         panel1.setLayout(new BoxLayout(panel1, BoxLayout.Y_AXIS));
         panel1.setBackground(new Color(3, 60, 0));
         panel1.add(botonComer);
-        add(panel1, BorderLayout.EAST);
         botonComer.setVisible(false);
         //botonComer.revalidate();
         //botonComer.repaint();
@@ -359,7 +410,6 @@ public class GUI extends JFrame {
         botonComer2 = new JButton("Comer");
         botonComer2.setPreferredSize(new Dimension(100, 50));
         panel1.add(botonComer2);
-        add(panel1, BorderLayout.EAST);
         botonComer2.setVisible(false);
 
         botonComer2.addActionListener(new ActionListener() {
@@ -385,7 +435,6 @@ public class GUI extends JFrame {
 
         botonRobar = new JButton("Robar");
         panel1.add(botonRobar);
-        add(panel1, BorderLayout.EAST);
         botonRobar.setVisible(false);
 
         botonRobar.addActionListener(new ActionListener() {
@@ -396,7 +445,6 @@ public class GUI extends JFrame {
                 juego.setAccionEspecial(false);
                 actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
                 Timer timer = new Timer(3000, i -> {
-                    panel1.remove(botonRobar);
                     panel1.revalidate();
                     panel1.repaint();
                     juego.actualizarTurno(juego.getTurno());
@@ -415,7 +463,6 @@ public class GUI extends JFrame {
         botonCambiarDireccion = new JButton("Cambiar de direccion");
         panel1.add(botonSaltarTurno);
         panel1.add(botonCambiarDireccion);
-        add(panel1, BorderLayout.EAST);
         botonSaltarTurno.setVisible(false);
         botonCambiarDireccion.setVisible(false);
 
@@ -426,7 +473,7 @@ public class GUI extends JFrame {
                 juego.saltarTurnoJugador(3, juego.getDireccion(), juego.getTurno());
                 juego.actualizarTurno(juego.getTurno());
                 System.out.println("NUEVO TURNO SALTADO: " + juego.getTurno());
-                limpiarPanelBotones11();
+                limpiarPanelBotones();
                 juego.setAccionEspecial(false);
                 actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
             }
@@ -439,12 +486,126 @@ public class GUI extends JFrame {
                 // Cambiar de dirección y luego actualizar el turno
                 juego.cambiarDireccion(juego.getDireccion());
                 juego.actualizarTurno(juego.getTurno());
-                limpiarPanelBotones11();
+                limpiarPanelBotones();
                 juego.setAccionEspecial(false);
                 actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
             }
         });
 
+        botonComerJugador1 = new JButton("Comer de jugador 1.");
+        botonComerJugador1.setPreferredSize(new Dimension(200, 50));
+        panel1.add(botonComerJugador1);
+        botonComerJugador1.setVisible(false);
+
+        botonComerJugador2 = new JButton("Comer de jugador 2.");
+        botonComerJugador2.setPreferredSize(new Dimension(200, 50));
+        panel1.add(botonComerJugador2);
+        botonComerJugador2.setVisible(false);
+
+        botonComerJugador3 = new JButton("Comer de jugador 3.");
+        botonComerJugador3.setPreferredSize(new Dimension(200, 50));
+        panel1.add(botonComerJugador3);
+        botonComerJugador3.setVisible(false);
+
+        botonComerJugador4 = new JButton("Comer de jugador 4.");
+        botonComerJugador4.setPreferredSize(new Dimension(200, 50));
+        panel1.add(botonComerJugador4);
+        botonComerJugador4.setVisible(false);
+
+        botonComerJugador1.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                limpiarPanelBotones();
+                botonComerJugador1.setVisible(false);
+                int jugadorSeleccionado = 0;
+                Carta cartaRobada = juego.getCartasJugadores().get(jugadorSeleccionado).getFirst();
+                juego.getCartasJugadores().get(jugadorSeleccionado).removeFirst();
+                juego.getCartasJugadores().get(juego.getTurno()).add(cartaRobada);
+                juego.setAccionEspecial(false);
+                crearBotonCartaComida(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                Timer timer = new Timer(3000, i -> {
+                    panel1.revalidate();
+                    panel1.repaint();
+                    juego.actualizarTurno(juego.getTurno());
+                    limpiarPanelBotones();
+                    actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                });
+                timer.setRepeats(false);
+                timer.start();
+            }
+        });
+
+        botonComerJugador2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                limpiarPanelBotones();
+                botonComerJugador2.setVisible(false);
+                int jugadorSeleccionado = 1;
+                Carta cartaRobada = juego.getCartasJugadores().get(jugadorSeleccionado).getFirst();
+                juego.getCartasJugadores().get(jugadorSeleccionado).removeFirst();
+                juego.getCartasJugadores().get(juego.getTurno()).add(cartaRobada);
+                juego.setAccionEspecial(false);
+                crearBotonCartaComida(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                Timer timer = new Timer(3000, i -> {
+                    panel1.revalidate();
+                    panel1.repaint();
+                    juego.actualizarTurno(juego.getTurno());
+                    limpiarPanelBotones();
+                    actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                });
+                timer.setRepeats(false);
+                timer.start();
+            }
+        });
+
+        botonComerJugador3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                limpiarPanelBotones();
+                botonComerJugador3.setVisible(false);
+                int jugadorSeleccionado = 2;
+                Carta cartaRobada = juego.getCartasJugadores().get(jugadorSeleccionado).getFirst();
+                juego.getCartasJugadores().get(jugadorSeleccionado).removeFirst();
+                juego.getCartasJugadores().get(juego.getTurno()).add(cartaRobada);
+                juego.setAccionEspecial(false);
+                crearBotonCartaComida(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                Timer timer = new Timer(3000, i -> {
+                    panel1.revalidate();
+                    panel1.repaint();
+                    juego.actualizarTurno(juego.getTurno());
+                    actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                });
+                timer.setRepeats(false);
+                timer.start();
+            }
+        });
+
+        botonComerJugador4.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                limpiarPanelBotones();
+                int jugadorSeleccionado = 3;
+                Carta cartaRobada = juego.getCartasJugadores().get(jugadorSeleccionado).getFirst();
+                juego.getCartasJugadores().get(jugadorSeleccionado).removeFirst();
+                juego.getCartasJugadores().get(juego.getTurno()).add(cartaRobada);
+                juego.setAccionEspecial(false);
+                crearBotonCartaComida(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                Timer timer = new Timer(3000, i -> {
+                    panel1.revalidate();
+                    panel1.repaint();
+                    juego.actualizarTurno(juego.getTurno());
+                    actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                });
+                timer.setRepeats(false);
+                timer.start();
+            }
+        });
+
+        add(panel1, BorderLayout.EAST);
         panel1.revalidate();
         panel1.repaint();
 
@@ -476,9 +637,13 @@ public class GUI extends JFrame {
     }
 
     // Limpia el panel de los botones después de la acción
-    private void limpiarPanelBotones11() {
+    private void limpiarPanelBotones() {
         botonSaltarTurno.setVisible(false);
         botonCambiarDireccion.setVisible(false);
+        botonComerJugador1.setVisible(false);
+        botonComerJugador2.setVisible(false);
+        botonComerJugador3.setVisible(false);
+        botonComerJugador4.setVisible(false);
         panel1.revalidate();
         panel1.repaint();
     }

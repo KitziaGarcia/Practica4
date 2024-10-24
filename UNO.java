@@ -253,6 +253,10 @@ public class UNO {
     }
 
 
+    public int getCantidadDeJugadores() {
+        return this.cantidadDeJugadores;
+    }
+
     public boolean getAccionEspecial() {
         return this.accionEspecial;
     }
