@@ -30,12 +30,12 @@ public class GUI extends JFrame {
     private ImageIcon imagenMazo;
     private Image imagenEscaladaMazo;
     private JLabel mazo;
-
+    private JTextField input;
+    private JButton validarEntrada;
+    private int cantidadDeJugadores;
 
     public GUI() {
-        juego = new UNO(3);
-        inicializarGUI();
-        jugar();
+        inputCampoJFrame();
     }
 
     public void inicializarGUI() {
@@ -69,6 +69,41 @@ public class GUI extends JFrame {
         setVisible(true);
     }
 
+    public void inputCampoJFrame() {
+        JFrame inputFrame = new JFrame("Ingrese cantidad de jugadores");
+        inputFrame.setSize(350, 100);
+        inputFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        inputFrame.setLayout(new FlowLayout());
+
+        input = new JTextField(10);
+        validarEntrada = new JButton("OK");
+
+        inputFrame.add(input);
+        inputFrame.add(validarEntrada);
+
+        validarEntrada.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    cantidadDeJugadores = Integer.parseInt(input.getText());
+                    if (cantidadDeJugadores >= 2 && cantidadDeJugadores <= 4) {
+                        inputFrame.dispose();
+                        juego = new UNO(cantidadDeJugadores);
+                        inicializarGUI();
+                        jugar();
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Por favor, ingresa un número entre 2 y 4.");
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Por favor, ingrese un número válido.");
+                }
+            }
+        });
+
+        inputFrame.setLocationRelativeTo(null);
+        inputFrame.setVisible(true);  // Muestra la ventana de entrada
+    }
+
     public void actualizarCartaPuestaEnGUI() {
         // Imagen de la carta puesta en el juego.esconder
         imagenCartaPuesta = juego.getCartaPuesta().getImagen();
@@ -94,9 +129,6 @@ public class GUI extends JFrame {
     }
 
     public void jugar() {
-        boolean juegoFinalizado = false;
-        boolean pasar = false;
-        boolean turnoFinalizado = false;
         boolean cartaValida = false;
         int direccion = 1;
         int turno = 0;
@@ -107,13 +139,26 @@ public class GUI extends JFrame {
         actualizarCartaPuestaEnGUI();
 
         // Crear botones para el jugador actual
-        crearBotones(juego.getCartasJugadores(), turno, juego.getCartaPuesta(), direccion, cartaValida);
+        crearBotones(juego.getCartasJugadores(), juego.getTurno(), juego.getCartaPuesta(), direccion, cartaValida);
     }
 
     public void crearBotones(ArrayList<ArrayList<Carta>> cartas, int turno, Carta cartaPuesta, int direccion, boolean cartaValida) {
         accionEspecial = juego.getAccionEspecial();
+        System.out.println();
+        System.out.println("-----------------------------------------");
+        System.out.println("ACCION ESPECIAL: " + juego.getAccionEspecial());
+        System.out.println("CARTA PUESTA: " + juego.getCartaPuesta());
+        System.out.println("MAS MOVIMIENTOS TURNO " + (juego.getTurno() + 1) + " " + juego.jugadorTieneMovimientos(juego.getTurno(), juego.getCartaPuesta()));
 
-        if (juego.noTieneCartas()) {
+        if ((juego.noTieneCartas())) {
+            displayCartasVolteadas();
+            avisoJuegoTerminado();
+        }
+
+        if (juego.juegoCerrado() && juego.cementerioEstaVacio()) {
+            int index;
+            index = juego.obtenerGanadorEnJuegoCerrado();
+            juego.setIndexGanador(index);
             displayCartasVolteadas();
             avisoJuegoTerminado();
         }
@@ -121,7 +166,7 @@ public class GUI extends JFrame {
         boolean masMovimientos = true;
         turno = juego.getTurno();
         direccion = juego.getDireccion();
-        System.out.println("TURNO: " + turno);
+        System.out.println("TURNO: " + (turno + 1));
 
         panelBotones.removeAll();
         botonesCarta.clear();
@@ -131,12 +176,13 @@ public class GUI extends JFrame {
 
         actualizarTextoJugador();
 
-        // Crear y agregar botones para las cartas del jugador actual
-        System.out.println("Cartas jugador " + (0) + ": " + juego.getCartasJugadores().get(0).toString());
-        System.out.println("Cartas jugador " + (1) + ": " + juego.getCartasJugadores().get(1).toString());
-        System.out.println("Cartas jugador " + (2) + ": " + juego.getCartasJugadores().get(2).toString());
 
-        for (Carta carta : cartas.get(finalTurno)) {
+        for (int i = 0; i < cantidadDeJugadores; i++) {
+            System.out.println("Cartas jugador " + (i + 1) + ": " + juego.getCartasJugadores().get(i).toString());
+        }
+
+        // Crear y agregar botones para las cartas del jugador actual
+        for (Carta carta : cartas.get(juego.getTurno())) {
             ImageIcon imagenOriginal = carta.getImagen();
             Image imagenEscalada = imagenOriginal.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
             JButton boton = new JButton(new ImageIcon(imagenEscalada));
@@ -144,23 +190,17 @@ public class GUI extends JFrame {
             boton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    /*if (carta.getValor() == 11 || carta.getValor() == 1) {
-                        juego.setAccionEspecial(true);
-                        System.out.println("BLOQUEAR MOVIMIENTOS: " + juego.getAccionEspecial());
-                    }*/
-
-                    jugarCarta(boton, carta, finalTurno, cartaPuesta, finalDireccion, cartaValida);
-                    System.out.println("CARTA PUESTA DEPUES DE JUGARLA EN GUI: " + juego.getCartaPuesta());
+                    jugarCarta(boton, carta, juego.getTurno(), juego.getCartaPuesta(), finalDireccion, cartaValida);
                     actualizarCartaPuestaEnGUI();
 
                     // Verificar si el juego ha terminado
-                    if (juego.noTieneCartasUnJugador(finalTurno)) {
+                    if ((juego.esCartaValida(carta, juego.getCartaPuesta()) && (carta.getValor() != 1 && carta.getValor() != 3) && juego.noTieneCartasUnJugador(finalTurno))) {
                         displayCartasVolteadas();
                         avisoJuegoTerminado();
                     }
 
                     // Recrear los botones para el siguiente jugador
-                    crearBotones(juego.getCartasJugadores(), finalTurno, juego.getCartaPuesta(), finalDireccion, cartaValida);
+                    crearBotones(juego.getCartasJugadores(), juego.getTurno(), juego.getCartaPuesta(), finalDireccion, cartaValida);
 
                     // Actualizar el panel
                     panelBotones.revalidate();
@@ -169,34 +209,26 @@ public class GUI extends JFrame {
             });
             botonesCarta.add(boton);
             panelBotones.add(boton);
-            /*masMovimientos = juego.jugadorTieneMovimientos(finalTurno, cartaPuesta);
-            System.out.println();
-            System.out.println("MAS MOVIMIENTOS TURNO " + finalTurno + " " + masMovimientos);
-            System.out.println();*/
         }
 
-        masMovimientos = juego.jugadorTieneMovimientos(finalTurno, cartaPuesta);
-        System.out.println();
-        System.out.println("MAS MOVIMIENTOS TURNO " + finalTurno + " " + masMovimientos);
-        System.out.println();
-
-        System.out.println("BLOQUEAR MOVIMIENTO ANTES DEL IF: " + juego.getAccionEspecial());
         if (!juego.getAccionEspecial()) {
+            masMovimientos = juego.jugadorTieneMovimientos(juego.getTurno(), juego.getCartaPuesta());
+            System.out.println();
+
             if (!masMovimientos) {
                 if (!juego.cementerioEstaVacio()) {
                     JOptionPane.showMessageDialog(this, "No tienes movimientos, debes comer una carta.");
                     botonComer.setVisible(true);
                 } else if (juego.cementerioEstaVacio()) {
-                    // Si no hay cartas para comer, se pasa el turno automáticamente
+
                     JOptionPane.showMessageDialog(this, "No hay cartas para comer, pasas automáticamente.");
-                    juego.actualizarTurno(finalTurno);
-                    actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, cartaValida); // Crear botones para el siguiente jugador
+                    juego.actualizarTurno(juego.getTurno());
+                    actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), direccion, cartaValida);
                 }
             }
         }
 
         // Actualizar el panel
-        //actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, cartaValida);
         panelBotones.revalidate();
         panelBotones.repaint();
         juego.setPrimerTurno(false);
@@ -204,34 +236,34 @@ public class GUI extends JFrame {
 
     private void jugarCarta(JButton botonCarta, Carta cartaSeleccionada, int turno, Carta cartaPuesta, int direccion, boolean cartaValida) {
         int index = botonesCarta.indexOf(botonCarta);
-        cartaSeleccionada = juego.getCartasJugadores().get(turno).get(index);
+        cartaSeleccionada = juego.getCartasJugadores().get(juego.getTurno()).get(index);
 
-        if (juego.esCartaValida(cartaSeleccionada, cartaPuesta)) {
+        System.out.println("Puesta local: " + cartaPuesta.getFigura() + " , " + cartaPuesta.getValor());
+        System.out.println("Puesta juego: " + juego.getCartaPuesta());
+        System.out.println("Seleccionada: " + cartaSeleccionada.getFigura() + " , " + cartaSeleccionada.getValor());
+
+        if (juego.esCartaValida(cartaSeleccionada, juego.getCartaPuesta())) {
             if ((cartaSeleccionada.getValor() == 11 || cartaSeleccionada.getValor() == 1 || cartaSeleccionada.getValor() == 3 ||  cartaSeleccionada.getValor() == 12) && !juego.getPrimerTurno()) {
                 juego.setAccionEspecial(true);
-                manejarEfectoCarta(cartaSeleccionada.getValor(), direccion, cartaPuesta, turno, true);
+                manejarEfectoCarta(cartaSeleccionada.getValor(), direccion, juego.getCartaPuesta(), juego.getTurno(), true);
                 juego.jugarCarta(true, cartaSeleccionada);
-                System.out.println("CARTA PUESTA EN JUGAR CARTA: " + juego.getCartaPuesta());
             } else {
-                manejarEfectoCarta(cartaSeleccionada.getValor(), direccion, cartaPuesta, turno, true);
+                manejarEfectoCarta(cartaSeleccionada.getValor(), direccion, juego.getCartaPuesta(), juego.getTurno(), true);
                 juego.jugarCarta(true, cartaSeleccionada);
-                juego.actualizarTurno(turno);
+                juego.actualizarTurno(juego.getTurno());
             }
         } else {
             mensajeCartaInvalida();
         }
     }
 
-
     public void mensajeCartaInvalida() {
         JOptionPane.showMessageDialog(this, "Carta no válida. Seleccione otra.");
     }
 
     public void comerDeCementerio(int turno, Carta cartaPuesta, int direccion, boolean cartaValida) {
-        juego.comerDeCementerio(turno);
-        System.out.println("DESPUES DE COMER: " + juego.getCartasJugadores().get(turno));
-        System.out.println("TURNO ANTES DE LLAMAR CREAR BOTON: " + turno);
-        crearBotonCartaComida(turno, cartaPuesta, direccion, cartaValida);
+        juego.comerDeCementerio(juego.getTurno());
+        crearBotonCartaComida(juego.getTurno(), juego.getCartaPuesta(), direccion, cartaValida);
     }
 
     public void mostrarTextoJugador() {
@@ -244,7 +276,6 @@ public class GUI extends JFrame {
         panelEtiqueta.add(jugadorEtiqueta);
         add(panelEtiqueta, BorderLayout.NORTH);
 
-        System.out.println("TURNO EN MENSAJE: " + (juego.getTurno() + 1));
         jugadorEtiqueta.setText("Cartas jugador: " + (juego.getTurno() + 1));
 
         panelEtiqueta.revalidate();
@@ -257,7 +288,7 @@ public class GUI extends JFrame {
 
     public void crearBotonCartaComida(int turno, Carta cartaPuesta, int direccion, boolean cartaValida) {
         // Obtener la carta comida
-        Carta cartaComida = juego.getCartasJugadores().get(turno).getLast();
+        Carta cartaComida = juego.getCartasJugadores().get(juego.getTurno()).getLast();
 
         // Mostrar siempre la carta comida en el GUI
         ImageIcon imagenOriginal = cartaComida.getImagen();
@@ -268,70 +299,66 @@ public class GUI extends JFrame {
         panelBotones.revalidate();
         panelBotones.repaint();
 
-        // Verificar si hay movimientos disponibles después de comer
-        boolean masMovimientosDespuesDeJugar = juego.jugadorTieneMovimientos(turno, cartaPuesta);
+        System.out.println("ACCION ESPECIAL EN BOTON CARTA COMIDA: " + juego.getAccionEspecial());
+        if (!juego.getAccionEspecial()) {
+            // Verificar si hay movimientos disponibles después de comer
+            boolean masMovimientosDespuesDeJugar = juego.jugadorTieneMovimientos(juego.getTurno(), juego.getCartaPuesta());
 
-        if (!masMovimientosDespuesDeJugar) {
-            // Si no hay movimientos, avisar al jugador y pasar el turno automáticamente
-            JOptionPane.showMessageDialog(null, "No tienes más movimientos, pasa automáticamente.");
-            juego.actualizarTurno(turno);
-            actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, cartaValida); // Actualizar botones para el siguiente jugador
-        } else {
-            // Si hay más movimientos, permitir que el jugador juegue la carta comida
-            botonesCarta.add(boton);
-            boton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    System.out.println("TURNO ANTES DE JUGAR: " + turno);
-                    jugarCarta(boton, cartaComida, turno, cartaPuesta, direccion, cartaValida);
-                    actualizarCartaPuestaEnGUI(); // Actualizar la carta puesta en el GUI
-                    System.out.println("TURNO DESPUÉS DE JUGAR: " + turno);
-                    actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, cartaValida);
+            if (!masMovimientosDespuesDeJugar) {
+                // Si no hay movimientos, avisar al jugador y pasar el turno automáticamente
+                JOptionPane.showMessageDialog(null, "No tienes más movimientos, pasa automáticamente.");
+                juego.actualizarTurno(juego.getTurno());
+                actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), direccion, cartaValida); // Actualizar botones para el siguiente jugador
+            } else {
+                // Si hay más movimientos, permitir que el jugador juegue la carta comida
+                botonesCarta.add(boton);
+                boton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        jugarCarta(boton, cartaComida, juego.getTurno(), juego.getCartaPuesta(), direccion, cartaValida);
+                        actualizarCartaPuestaEnGUI(); // Actualizar la carta puesta en el GUI
+                        actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), direccion, cartaValida);
 
-                }
-            });
+                    }
+                });
+            }
         }
     }
 
     private void actualizarPanelBotones(int finalTurno, Carta cartaPuesta, int direccion, boolean cartaValida) {
-        crearBotones(juego.getCartasJugadores(), finalTurno, cartaPuesta, direccion, cartaValida);
+        crearBotones(juego.getCartasJugadores(), juego.getTurno(), juego.getCartaPuesta(), direccion, cartaValida);
     }
 
     public void manejarEfectoCarta(int valorCarta, int direccion, Carta cartaPuesta, int turno, boolean cartaValida) {
-        System.out.println("BLOQUEAR MOVIMIENTO: " + juego.getAccionEspecial());
+        //System.out.println("BLOQUEAR MOVIMIENTO: " + juego.getAccionEspecial());
         switch (valorCarta) {
             case 1:
                 botonComer2.setVisible(true);
-                actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, true);
-                JOptionPane.showMessageDialog(null, "Tienes que comer una carta.");
+                actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), direccion, true);
+
+                if(juego.cementerioEstaVacio()) {
+                    JOptionPane.showMessageDialog(this, "No hay cartas para comer, pasas automáticamente.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Tienes que comer una carta.");
+                }
 
                 break;
             case 2:
-                JOptionPane.showMessageDialog(null, "El siguiente jugador come dos cartas.");
+                JOptionPane.showMessageDialog(null, "El siguiente jugador come dos cartas automaticamente.");
                 juego.hacerComerAJugador();
                 break;
             case 3:
-                System.out.println("ANTES DE ACTIVAR: " + botonRobar.isVisible());
                 botonRobar.setVisible(true);
-                System.out.println("DESPUES DE ACTIVAR: " + botonRobar.isVisible());
                 JOptionPane.showMessageDialog(null, "Roba cuatro cartas al siguiente jugador.");
-                actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, true);
+                actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), direccion, true);
 
                 break;
             case 11:
                 hacerBotonesVisibles();
-                System.out.println("CARTA PUESTA EN MANEJAR EFECTO: " + juego.getCartaPuesta());
                 actualizarCartaPuestaEnGUI();
-                //System.out.println("TURNO: " + turno);
-                //displayCartas(juego.getCartasJugadores(), turno);
-                //actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, true);
 
                 break;
             case 12:
-                //Que pida el numero del jugador a quitar cartas, las muestre volteadas y pueda escoger cual quiere.
-                //Que pida el numero del jugador a quitar cartas, las muestre volteadas y pueda escoger cual quiere.
-                //System.out.println("Elige el jugador al que quieres quitarle una carta (1 - " + cantidadDeJugadores + "): ");
-
                 switch (juego.getTurno()) {
                     case 0:
                         if (juego.getCantidadDeJugadores() == 2) {
@@ -376,7 +403,7 @@ public class GUI extends JFrame {
                         botonComerJugador3.setVisible(true);
                         break;
                 }
-                actualizarPanelBotones(juego.getTurno(), cartaPuesta, direccion, true);
+                actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), direccion, true);
         }
     }
 
@@ -395,8 +422,6 @@ public class GUI extends JFrame {
         panel1.setBackground(new Color(3, 60, 0));
         panel1.add(botonComer);
         botonComer.setVisible(false);
-        //botonComer.revalidate();
-        //botonComer.repaint();
 
         botonComer.addActionListener(new ActionListener() {
             @Override
@@ -417,8 +442,8 @@ public class GUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 botonComer2.setVisible(false);
                 comerDeCementerio(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
-                juego.setAccionEspecial(false);
                 actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                juego.setAccionEspecial(false);
 
                 Timer timer = new Timer(3000, i -> {
                     juego.actualizarTurno(juego.getTurno());
@@ -429,7 +454,7 @@ public class GUI extends JFrame {
             }
         });
 
-        System.out.println("BLOQUEAR MOVIMIENTO: " + juego.getAccionEspecial());
+        //System.out.println("BLOQUEAR MOVIMIENTO: " + juego.getAccionEspecial());
         //botonComer2.revalidate();
         //botonComer2.repaint();
 
@@ -442,8 +467,9 @@ public class GUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 botonRobar.setVisible(false);
                 juego.robarCartas(juego.getTurno(), 4);
-                juego.setAccionEspecial(false);
                 actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                juego.setAccionEspecial(false);
+
                 Timer timer = new Timer(3000, i -> {
                     panel1.revalidate();
                     panel1.repaint();
@@ -521,9 +547,10 @@ public class GUI extends JFrame {
                 Carta cartaRobada = juego.getCartasJugadores().get(jugadorSeleccionado).getFirst();
                 juego.getCartasJugadores().get(jugadorSeleccionado).removeFirst();
                 juego.getCartasJugadores().get(juego.getTurno()).add(cartaRobada);
-                juego.setAccionEspecial(false);
                 crearBotonCartaComida(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
                 actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                juego.setAccionEspecial(false);
+
                 Timer timer = new Timer(3000, i -> {
                     panel1.revalidate();
                     panel1.repaint();
@@ -545,9 +572,10 @@ public class GUI extends JFrame {
                 Carta cartaRobada = juego.getCartasJugadores().get(jugadorSeleccionado).getFirst();
                 juego.getCartasJugadores().get(jugadorSeleccionado).removeFirst();
                 juego.getCartasJugadores().get(juego.getTurno()).add(cartaRobada);
-                juego.setAccionEspecial(false);
                 crearBotonCartaComida(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
                 actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                juego.setAccionEspecial(false);
+
                 Timer timer = new Timer(3000, i -> {
                     panel1.revalidate();
                     panel1.repaint();
@@ -569,9 +597,10 @@ public class GUI extends JFrame {
                 Carta cartaRobada = juego.getCartasJugadores().get(jugadorSeleccionado).getFirst();
                 juego.getCartasJugadores().get(jugadorSeleccionado).removeFirst();
                 juego.getCartasJugadores().get(juego.getTurno()).add(cartaRobada);
-                juego.setAccionEspecial(false);
                 crearBotonCartaComida(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
                 actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                juego.setAccionEspecial(false);
+
                 Timer timer = new Timer(3000, i -> {
                     panel1.revalidate();
                     panel1.repaint();
@@ -591,9 +620,10 @@ public class GUI extends JFrame {
                 Carta cartaRobada = juego.getCartasJugadores().get(jugadorSeleccionado).getFirst();
                 juego.getCartasJugadores().get(jugadorSeleccionado).removeFirst();
                 juego.getCartasJugadores().get(juego.getTurno()).add(cartaRobada);
-                juego.setAccionEspecial(false);
                 crearBotonCartaComida(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
                 actualizarPanelBotones(juego.getTurno(), juego.getCartaPuesta(), juego.getDireccion(), true);
+                juego.setAccionEspecial(false);
+
                 Timer timer = new Timer(3000, i -> {
                     panel1.revalidate();
                     panel1.repaint();

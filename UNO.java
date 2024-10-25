@@ -20,6 +20,7 @@ public class UNO {
     boolean cartaValida;
     private boolean accionEspecial;
     private boolean seComioCarta;
+    private int indexGanador;
     //private int winnerTurn;
 
     public UNO(int cantidadDeJugadores) {
@@ -80,7 +81,7 @@ public class UNO {
     }
 
     public void actualizarTurno(int direccion) {
-        int cantidadDeJugadores = 3;
+        int cantidadDeJugadores = this.cantidadDeJugadores;
 
         if (!juegoFinalizado) {
             this.turno += this.direccion;
@@ -103,8 +104,6 @@ public class UNO {
 
     public boolean esCartaValida(Carta cartaSeleccionada, Carta cartaPuesta) {
         boolean cartaValida = true;
-        System.out.println("Puesta: " + cartaPuesta.getFigura() + " , " + cartaPuesta.getValor());
-        System.out.println("Seleccionada: " + cartaSeleccionada.getFigura() + " , " + cartaSeleccionada.getValor());
         if ((cartaSeleccionada.getFigura().equals(cartaPuesta.getFigura())) || (cartaSeleccionada.getValor() == cartaPuesta.getValor())) {
             cartaValida = true;
         } else {
@@ -119,15 +118,19 @@ public class UNO {
     }
 
     public int getIndexGanador() {
-        int index = 0;
+        indexGanador = 0;
 
         for (int i = 0; i < cartasJugadores.size(); i ++) {
             if (cartasJugadores.get(i).isEmpty()) {
-                index = i;
+                indexGanador = i;
             }
         }
 
-        return index;
+        return indexGanador;
+    }
+
+    public void setIndexGanador(int indexGanador) {
+        this.indexGanador = indexGanador;
     }
 
     public void jugarCarta(boolean cartaValida, Carta cartaSeleccionada) {
@@ -145,6 +148,30 @@ public class UNO {
         }
 
         return c > 0;
+    }
+
+    public boolean juegoCerrado() {
+        int c = 0;
+        for (int i = 0; i < cantidadDeJugadores; i++) {
+            if (!jugadorTieneMovimientos(i, getCartaPuesta())) {
+                c++;
+            }
+        }
+
+        return c == cantidadDeJugadores;
+    }
+
+    public int obtenerGanadorEnJuegoCerrado() {
+        int cantidad = 0;
+        int index = 0;
+
+        for (int i = 0; i < cartasJugadores.size(); i++) {
+            if (cantidad < cartasJugadores.get(i).size()) {
+                cantidad = cartasJugadores.get(i).size();
+                index = i;
+            }
+        }
+        return index;
     }
 
     public ArrayList<ArrayList<Carta>> getCartasJugadores() {
@@ -263,10 +290,6 @@ public class UNO {
 
     public void setAccionEspecial(boolean accionEspecial) {
         this.accionEspecial = accionEspecial;
-    }
-
-    public void setSeComioCarta(boolean seComioCarta) {
-        this.seComioCarta = seComioCarta;
     }
 
     public boolean getPrimerTurno() {
